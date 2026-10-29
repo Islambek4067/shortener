@@ -7,7 +7,7 @@ type Memory struct {
 	links map[string]string
 }
 
-func newMemory() *Memory {
+func NewMemory() *Memory {
 	return &Memory{
 		links: make(map[string]string),
 	}

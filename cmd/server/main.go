@@ -1,18 +1,25 @@
-
 package main
 
 import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"shortener/internal/handler"
+	"shortener/internal/storage"
 )
 
 func main() {
-	http.HandleFunc("/default", func(w http.ResponseWriter, r *http.Request) {
+	store := storage.NewMemory()
+	h := handler.NewHandler(store)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "default")
 	})
+	mux.HandleFunc("POST /shorten", h.Shorten)
+	mux.HandleFunc("GET /{code}", h.Redirect)
 
-	log.Println("сервер запущен на :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
-
+	log.Println("server on port :8080")
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
