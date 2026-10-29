@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"shortener/internal/storage"
 )
@@ -54,8 +55,32 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	link, ok := h.store.Get(code)
 
 	if ok {
-		http.Redirect(w, r, link, http.StatusFound)
+		h.store.AddClick(code)
+		http.Redirect(w, r, link.Original, http.StatusFound)
 
+	} else {
+		http.Error(w, "Not found", http.StatusNotFound)
+	}
+}
+
+type statsResponse struct {
+	Original  string    `json:"original"`
+	Clicks    int       `json:"clicks"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
+	code := r.PathValue("code")
+	link, ok := h.store.Get(code)
+
+	if ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(statsResponse{
+			Original:  link.Original,
+			Clicks:    link.Clicks,
+			CreatedAt: link.CreatedAt,
+		})
 	} else {
 		http.Error(w, "Not found", http.StatusNotFound)
 	}

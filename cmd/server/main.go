@@ -19,6 +19,7 @@ func main() {
 	})
 	mux.HandleFunc("POST /shorten", h.Shorten)
 	mux.HandleFunc("GET /{code}", h.Redirect)
+	mux.HandleFunc("GET /stats/{code}", h.Stats)
 
 	log.Println("server on port :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
